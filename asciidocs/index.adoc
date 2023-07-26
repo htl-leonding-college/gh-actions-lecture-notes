@@ -1,0 +1,203 @@
+= gh-actions Lecture Notes
+Thomas W. Stütz
+0.0.1, 2023-07-26: gh-actions
+ifndef::imagesdir[:imagesdir: images]
+//:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
+:sourcedir: ../src/main/java
+:icons: font
+:sectnums:    // Nummerierung der Überschriften / section numbering
+:toc: left
+:toclevels: 5
+:experimental:
+
+// https://mrhaki.blogspot.com/2014/06/awesome-asciidoc-use-link-attributes.html
+:linkattrs:
+
+//Need this blank line after ifdef, don't know why...
+ifdef::backend-html5[]
+
+// https://fontawesome.com/v4.7.0/icons/
+icon:file-text-o[link=https://raw.githubusercontent.com/htl-leonding-college/asciidoctor-docker-template/master/asciidocs/{docname}.adoc] ‏ ‏ ‎
+icon:github-square[link=https://github.com/htl-leonding-college/asciidoctor-docker-template] ‏ ‏ ‎
+icon:home[link=https://htl-leonding.github.io/]
+endif::backend-html5[]
+
+// print the toc here (not at the default position)
+toc::[]
+
+== Prerequisites - What students have to prepare
+
+== Learning Resources
+
+* https://docs.github.com/actions[GitHub - GitHub Actions documentation^]
+* https://learn.microsoft.com/en-us/training/modules/introduction-to-github-actions/[Microsoft - Introduction to GitHub Actions^]
+* https://codefresh.io/learn/github-actions/github-actions-tutorial-and-examples/[codefresh - GitHub Actions Tutorial and Examples^]
+* https://github.com/CyberScout/github-actions-sandbox[github-actions-sandbox^]
+* https://github.com/crc-org/crc[How to use gh-workflow-badges in README.adoc^]
+* https://github.com/repology/repology-webapp/issues/124[Asciidoc badges^]
+* https://github.com/github/actions-cheat-sheet[gh-actions cheat sheet^] (written in asciidoctor) as https://github.github.io/actions-cheat-sheet/actions-cheat-sheet.pdf[pdf^]
+
+== Introduction
+
+=== Actions
+
+Actions are the mechanism used to provide workflow automation within the GitHub environment.
+
+They're often used to build continuous integration (CI) and continuous deployment (CD) solutions.
+
+However, they can be used for a wide variety of tasks:
+
+* Automated testing.
+* Automatically responding to new issues, mentions.
+* Triggering code reviews.
+* Handling pull requests.
+* Branch management.
+
+They're defined in YAML and stay within GitHub repositories.
+
+Actions are executed on "runners," either hosted by GitHub or self-hosted.
+
+Contributed actions can be found in the GitHub Marketplace. See https://github.com/marketplace[Marketplace Actions^]
+
+=== Workflows
+
+.actions flow
+[plantuml,actions-flow,png]
+----
+include::plantuml/actions-flow.puml[]
+----
+
+* GitHub tracks events that occur. Events can trigger the start of workflows.
+* Workflows can also start on cron-based schedules and can be triggered by events outside of GitHub.
+* They can be manually triggered.
+* Workflows are the unit of automation. They contain Jobs.
+* Jobs use Actions to get work done.
+* Workflows define the automation required. It details the events that should trigger the workflow.
+* Also, define the jobs that should run when the workflow is triggered.
+* The job defines the location in which the actions will run, like which runner to use.
+* Workflows are written in YAML and live within a GitHub repository at the place `.github/workflows`.
+* https://everhour.com/blog/github-actions-tutorial/[GitHub Actions Tutorial: A Complete Guide with Examples^] (nice examples for issues and releases)
+
+[source, yaml]
+----
+include::../.github/workflows/demo-workflow-file.yaml[]
+----
+
+You can find a set of starter workflows here: https://github.com/actions/starter-workflows[Starter Workflows^].
+
+You can see the allowable syntax for workflows here: https://docs.github.com/actions/learn-github-actions/workflow-syntax-for-github-actions[Workflow syntax for GitHub Actions^]
+
+=== Standard workflow syntax elements
+
+Workflows include several standard syntax elements.
+
+* *Name*: is the name of the workflow. It's optional but is highly recommended. It appears in several places within the GitHub UI.
+* *On*: is the event or list of events that will trigger the workflow.
+* *Jobs*: is the list of jobs to be executed. Workflows can contain one or more jobs.
+* *Runs-on*: tells Actions which runner to use.
+* *Steps*: It's the list of steps for the job. Steps within a job execute on the same runner.
+* *Uses*: tells Actions, which predefined action needs to be retrieved. For example, you might have an action that installs node.js.
+* *Run*: tells the job to execute a command on the runner. For example, you might execute an NPM command.
+
+You can see the allowable syntax for workflows here: https://docs.github.com/actions/learn-github-actions/workflow-syntax-for-github-actions[Workflow syntax for GitHub Actions^].
+
+=== Events
+
+Events are implemented by the `on` clause in a workflow definition.
+
+There are several types of events that can trigger workflows.
+
+==== Scheduled events
+
+With this type of trigger, a cron schedule needs to be provided.
+
+[source,yaml]
+----
+on:
+    schedule:
+        - cron: '0 8-17 * * 1-5'
+----
+
+Cron schedules are based on five values:
+
+* Minute (0 - 59)
+* Hour (0 - 23)
+* Day of the month (1 - 31)
+* Month (1 - 12)
+* Day of the week (0 - 6)
+
+Aliases for the months are JAN-DEC and for days of the week are SUN-SAT.
+
+A wild card means any. (* is a special value in YAML, so the cron string will need to be quoted)
+
+So, in the example above, the schedule would be 8 AM - 5 PM Monday to Friday.
+
+==== Code events
+
+Code events will trigger most actions. It occurs when an event of interest occurs in the repository.
+
+[source,yaml]
+----
+on:
+    pull_request
+----
+
+The above event would fire when a pull request occurs.
+
+[source,yaml]
+----
+on:
+    [push, pull_request]
+----
+
+The above event would fire when either a push or a pull request occurs.
+
+[source,yaml]
+----
+on:
+    pull_request:
+        branches:
+           - develop
+----
+
+The event shows how to be specific about the section of the code that is relevant.
+
+In this case, it will fire when a pull request is made in the develop branch.
+
+
+==== Manual events
+
+There's a unique event that is used to trigger workflow runs manually. You should use the workflow_dispatch event.
+
+Your workflow must be in the default branch for the repository.
+Webhook events
+
+Workflows can be executed when a GitHub webhook is called.
+
+[source,yaml]
+----
+on:
+    gollum
+----
+
+This event would fire when someone updates (or first creates) a Wiki page.
+
+==== External events
+
+Events can be on repository_dispatch. That allows events to fire from external systems.
+
+For more information on events, see https://docs.github.com/actions/learn-github-actions/events-that-trigger-workflows[Events that trigger workflows^].
+
+
+=== Jobs
+
+
+
+
+
+
+
+
+
+
+

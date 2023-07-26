@@ -1,0 +1,12 @@
+@startuml
+
+rectangle Events
+rectangle Workflows
+rectangle Jobs
+rectangle Actions
+
+Events -right-> Workflows: trigger
+Workflows -right-> Jobs: contain
+Jobs -right-> Actions: use
+
+@enduml
