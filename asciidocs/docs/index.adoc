@@ -3,7 +3,7 @@ Thomas W. Stütz
 0.0.1, 2023-07-26: gh-actions
 ifndef::imagesdir[:imagesdir: images]
 //:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
-:sourcedir: ../src/main/java
+:sourcedir: ../../src/main/java
 :icons: font
 :sectnums:    // Nummerierung der Überschriften / section numbering
 :toc: left
@@ -23,7 +23,7 @@ icon:home[link=https://htl-leonding.github.io/]
 endif::backend-html5[]
 
 // print the toc here (not at the default position)
-toc::[]
+//toc::[]
 
 == Prerequisites - What students have to prepare
 
@@ -38,6 +38,8 @@ toc::[]
 * https://github.com/github/actions-cheat-sheet[gh-actions cheat sheet^] (written in asciidoctor) as https://github.github.io/actions-cheat-sheet/actions-cheat-sheet.pdf[pdf^]
 
 == Introduction
+
+-> Microsoft-tutorial
 
 === Actions
 
@@ -80,9 +82,24 @@ include::plantuml/actions-flow.puml[]
 
 [source, yaml]
 ----
-include::../.github/workflows/demo-workflow-file.yaml[]
+include::../../.github/workflows/demo-workflow-file.yaml[]
 ----
 
+.run the first workflow
+[%collapsible]
+====
+.When a indentation error occurs
+image::gh-actions-error.png[]
+
+image::first-workflow-1.png[]
+
+image::first-workflow-2.png[]
+
+image::first-workflow-3.png[]
+
+image::first-workflow-4.png[]
+
+====
 You can find a set of starter workflows here: https://github.com/actions/starter-workflows[Starter Workflows^].
 
 You can see the allowable syntax for workflows here: https://docs.github.com/actions/learn-github-actions/workflow-syntax-for-github-actions[Workflow syntax for GitHub Actions^]
@@ -191,8 +208,92 @@ For more information on events, see https://docs.github.com/actions/learn-github
 
 === Jobs
 
+Workflows contain one or more jobs. A job is a set of steps that will be run in order on a runner.
 
+Steps within a job execute on the same runner and share the same filesystem.
 
+The logs produced by jobs are searchable, and artifacts produced can be saved.
+
+==== Jobs with dependencies
+
+By default, if a workflow contains multiple jobs, they run in parallel.
+
+[source,yaml]
+----
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./setup_server_configuration.sh
+  build:
+    steps:
+    - run: ./build_new_server.sh
+----
+
+Sometimes you might need one job to wait for another job to complete.
+
+You can do that by defining dependencies between the jobs.
+
+[source,yaml]
+----
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./setup_server_configuration.sh
+  build:
+    needs: startup
+    steps:
+      - run: ./build_new_server.sh
+----
+
+TIP: If the startup job in the example above fails, the build job won't execute.
+
+For more information on job dependencies, see the section *Creating Dependent Jobs* at https://docs.github.com/actions/learn-github-actions/managing-complex-workflows[Managing complex workflows^].
+
+=== Runners
+
+When you execute jobs, the steps execute on a Runner.
+
+The steps can be the execution of a shell script or the execution of a predefined Action.
+
+GitHub provides several hosted runners to avoid you needing to spin up your infrastructure to run actions.
+
+Now, the maximum duration of a job is 6 hours, and for a workflow is 72 hours.
+
+For JavaScript code, you have implementations of node.js on:
+
+* Windows
+* macOS
+* Linux
+
+If you need to use other languages, a Docker container can be used. Now, the Docker container support is only Linux-based.
+
+These options allow you to write in whatever language you prefer.
+
+JavaScript actions will be faster (no container needs to be used) and more versatile runtime.
+
+The GitHub UI is also better for working with JavaScript actions.
+
+==== Self-hosted runners
+
+If you need different configurations to the ones provided, you can create a self-hosted runner.
+
+GitHub has published the source code for self-hosted runners as open-source, and you can find it here: https://github.com/actions/runner[https://github.com/actions/runner^].
+
+It allows you to customize the runner completely. However, you then need to maintain (patch, upgrade) the runner system.
+
+Self-hosted runners can be added at different levels within an enterprise:
+
+* Repository-level (single repository).
+* Organizational-level (multiple repositories in an organization).
+* Enterprise-level (multiple organizations across an enterprise).
+
+IMPORTANT: GitHub strongly recommends that you don't use self-hosted runners in public repos.
+
+Doing it would be a significant security risk, as you would allow someone (potentially) to run code on your runner within your network.
+
+For more information on self-hosted runners, see: https://docs.github.com/actions/hosting-your-own-runners/about-self-hosted-runners[About self-hosted runners^].
 
 
 
